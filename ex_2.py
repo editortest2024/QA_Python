@@ -1,6 +1,9 @@
+#импорт класса для работы с датами
 from datetime import datetime
+#текущий год, нужен для расчета коэф. года выпуска.
 current_year = datetime.now().year
 
+#словарь-шаблон для создания новых записей оцнеки авто
 _car = {
   "brand": "Ford",
   "year": 2000,
@@ -8,6 +11,7 @@ _car = {
   "new": 0
 }
 
+#словарь параметров авто
 param_prompts = {
     "brand": "марка",
     "year": "год выпуска",
@@ -15,44 +19,55 @@ param_prompts = {
     "new": "новый"
 }
 
+#расчет коэф. марки авто
 def brand_coef (s):
-    brand_weights = {
+    brand_weights = { #словарь повышающих/понижающих коэф. для марок авто
         "ford": 1,
         "pontiac": 0.9,
         "lada": 0.5,
         "bmw": 3,
         "mercedes": 3
     }
-    s = str(s).lower()
-    if(s in brand_weights):
-        return brand_weights[s]
+    s = str(s).lower() #приводим марку к нижнему регистру
+    if(s in brand_weights): #если такая марка есть в словаре
+        return brand_weights[s] #возвращаем коэф. из словаря
     else:
-        return 1
-
+        return 1 #иначе, возвращаем 1
+    
+#расчет коэф. года выпуска
 def year_coef (y):
-    return max(0.1,1 - 0.05*(current_year-y))
+    #считаем, что авто дешевеет в год на 5%, но не ниже 10% от начальной стоимости
+    return max(0.1,1 - 0.05*(current_year-y)) 
 
+#расчет коэф. пробега
 def mileage_coef(m):
-    if(type(m) is int):
+    if(type(m) is int): #если в фунцию передано целое число
+        #считаем, что за каждые 10 тыс. км авто дешевеет на 1%, но не ниже 10% от начальной стоимости
         return max(0.1,1 - 0.000001*m)
     else:
-        return 1
-    
+        return 1 #иначе, возвращаем 1
+
+#расчет коэф. нового авто
 def new_coef(n):
     if(n):
-        return 1
+        return 1 #если авто новое, коэф. 1
     else:
-        return 0.9
-    
+        return 0.9 
+
+#расчет коэффициентов и оценочной стоимости
 def set_car_price(c):
-    base_price = 20000
+    base_price = 20000 #берем базовую стоимость
+    #последовательно вычисляем все коэф.
     c["brand_coef"] = brand_coef(c["brand"])
     c["year_coef"] = year_coef(c["year"])
     c["mileage_coef"] = mileage_coef(c["mileage"])
     c["new_coef"] = new_coef(c["new"])
+    #получаем оценочную стоимость путем умножения базовой на все коэф.
     c["price"] = base_price * c["brand_coef"] * c["year_coef"] * c["mileage_coef"] * c["new_coef"]
 
+#вывод на консоль параметров, коэффициентов и оценочной стоимости авто
 def print_car_price(c, i):
+    #формируем строку вывода с параметрами и ценой для авто
     output = '''%r. Автомобиль: марка %r (коэф. %r), год выпуска %r (коэф. %r), 
         пробег %r (коэф. %r), новый %r (коэф. %r). Оценочная стоимость %r''' % (
             i,
@@ -61,32 +76,34 @@ def print_car_price(c, i):
             c["mileage"], c["mileage_coef"],
             c["new"], c["new_coef"],
             c["price"])
+    #выводим на консоль
     print(output)
-        
-def set_car_param (car, p_name):
-    if(p_name in car):
-        v = input(param_prompts[p_name] + ": ")
-        if type(car[p_name]) is int:
-            if v.isdigit():
-                car[p_name] = int(v)
-        else:
-            car[p_name] = str(v)
 
+#Функция получающая значение параметра по его ключу        
+def set_car_param (car, p_name):
+    if(p_name in car): #если у авто существует параметр с ключом p_name
+        v = input(param_prompts[p_name] + ": ") #выводим приглаешение его ввести
+        if type(car[p_name]) is int: #если параметр должен быть целым числом
+            if v.isdigit(): #проверяем, что введенное пользователем значени - число
+                car[p_name] = int(v) #устанавливаем для параметра введенное значение
+            #иначе оставляем прежнее значение
+        else: #если параметр строковый
+            car[p_name] = str(v) #преобразуем введенное значение в строку и присваиваем параметру
+
+#Главная часть программы
 print("Калькулятор стоимости авто")
-l = [] 
-while True:
+l = [] #список авто для оценки
+while True: #цикл получения данных об авто, подлежащих оценке
     print("Введите данные автомобиля")
-    c = _car.copy()
-    for p in c:
-        set_car_param (c, p)
-    set_car_price(c)
-    #print(c)
-    #print(def_car)
-    l.append(c)
+    c = _car.copy() #создаем новую запись, путем копирования словаря-шаблона
+    for p in c: #для всех существующих в шаблоне параметров
+        set_car_param (c, p) #запрашиваем у пользователя их значения
+    set_car_price(c) #рассчитываем стоимость
+    l.append(c) #добавляем авто в список
     if (input("Добавить еще одно авто? [y,n] ").lower() not in {"y", "1"}):
-        break
+        break #если пользователь отказывается добавлять следующее авто, выходим из цикла
 
 i = 0
-for a in l:
-    i += 1
-    print_car_price(a, i)
+for a in l: #цикл вывода строк с оценками на экран
+    i += 1 #получаем номер строки для вывода на экран
+    print_car_price(a, i) #выводим на экран строку с оценкой
