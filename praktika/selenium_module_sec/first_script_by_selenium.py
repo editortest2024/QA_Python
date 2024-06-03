@@ -13,43 +13,17 @@ driver = webdriver.Chrome()
 
 
 
-
-
-
-
-
-
-
-
 try:
-        # через get мы говорим браузеру что обращаемся к странице
-    driver.get('https://erikdark.github.io/Qa_autotest_01/')
-    time.sleep(2)
-    #с помощью команды find_element(и класса By внутри ) мы ишем нужный элемент на странце сайта, в качестве аргумента мы передаем класс поиска By и значение которое ищем.
-    input_one = driver.find_element(By.ID,'inputField')
-
-
-
-
-    #с помощью send_keys(мы записываем данные в поле)
-    input_one.send_keys('Erik')
-
-
-
-
-    btn = driver.find_element(By.CSS_SELECTOR,".buttons .btn:nth-child(3)")
-    #с помощью click() мы кликаем по кнопке
+    driver.get('https://erikdark.github.io/Qa_autotest_02/')
+    data = ['7821378127','erik@mail.ru','erik','test123']
+    inputs = driver.find_elements(By.TAG_NAME,'input')
+    for i in range(len(inputs)):
+        inputs[i].send_keys(data[i])
+    btn = driver.find_element(By.CSS_SELECTOR, '#submitBtn')
+    time.sleep(1)
     btn.click()
-    time.sleep(5)
+    time.sleep(3)
 
 
 finally:
     driver.quit()
-
-
-
-
-
-driver.quit()
-
-
